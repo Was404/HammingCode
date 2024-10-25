@@ -2,4 +2,8 @@
     <string name="app_name">Hamming code</string>
     <string name="tittle_main">Алгоритмы теории информации</string>
     <string name="launch_btn">Кодировать</string>
+    <string name="nav_main">Главная</string>
+    <string name="nav_result">Результаты</string>
+    <string name="nav_settings">Настройки</string>
+    <string name="welcome">Добро пожаловать!</string>
 </resources>
