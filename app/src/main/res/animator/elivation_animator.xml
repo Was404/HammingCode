@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:propertyName="translationZ"
+        android:duration="100"
+        android:valueFrom="5"
+        android:valueTo="3" />
+</set>
