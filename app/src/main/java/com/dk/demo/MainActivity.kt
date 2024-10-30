@@ -1,5 +1,6 @@
 package com.dk.demo
 
+import HammingCode
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Bundle
@@ -14,14 +15,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var backgroundPink: ConstraintLayout
+    private lateinit var text_output: TextView
+    private lateinit var text_welcome: TextView
+    private lateinit var textUnderSticker: TextView
     private var originalWidth: Int = 0
     private var originalHeight: Int = 0
 
@@ -41,9 +43,9 @@ class MainActivity : ComponentActivity() {
         val btn_nav_result: Button = findViewById(R.id.nav_item2)
         val btn_nav_settings: Button = findViewById(R.id.nav_item3)
 
-        val text_output: TextView = findViewById(R.id.textOutput)
-        val text_welcome: TextView = findViewById(R.id.textWelcome)
-        val textUnderSticker: TextView = findViewById(R.id.textUnderSticker)
+        text_output = findViewById(R.id.textOutput)
+        text_welcome = findViewById(R.id.textWelcome)
+        textUnderSticker = findViewById(R.id.textUnderSticker)
 
         val layout_results: LinearLayout = findViewById(R.id.layout_results_nav)
         val layout_settings: LinearLayout = findViewById(R.id.layout_settings_nav)
@@ -68,8 +70,6 @@ class MainActivity : ComponentActivity() {
             setActiveLayout(layout_results)
             expandbackgroundPink()
             animateButtonPress(btn_nav_result)
-            text_welcome.visibility = View.GONE
-            textUnderSticker.visibility = View.GONE
             img_nav_result.setImageResource(R.drawable.ic_bookmark_filled)
             img_nav_main.setImageResource(R.drawable.ic_chat_bubble)
             img_nav_settings.setImageResource(R.drawable.ic_settings)
@@ -86,8 +86,6 @@ class MainActivity : ComponentActivity() {
         btn_nav_settings.setOnClickListener{
             setActiveLayout(layout_settings)
             expandbackgroundPink()
-            text_welcome.visibility = View.GONE
-            textUnderSticker.visibility = View.GONE
             img_nav_settings.setImageResource(R.drawable.ic_settings_filled)
             img_nav_result.setImageResource(R.drawable.ic_results)
             img_nav_main.setImageResource(R.drawable.ic_chat_bubble)
@@ -108,6 +106,8 @@ class MainActivity : ComponentActivity() {
     }
     private fun collapsebackgroundPink() {
         // Раскрывает розовый фон
+        text_welcome.visibility = View.GONE
+        textUnderSticker.visibility = View.GONE
         val params = backgroundPink.layoutParams as ViewGroup.LayoutParams
         params.width = originalWidth
         params.height = originalHeight
@@ -138,9 +138,13 @@ class MainActivity : ComponentActivity() {
 
     private fun handleInputText(text: String) {
         // Здесь происходит обработка введенного текста
-        // Например, можно вывести его в TextView, отправить на сервер,
-        // сохранить в базу данных и т. д.
-        // ...
+        // Например, можно вывести его в TextView
+        val hammingCode = HammingCode()
+        val encodedMessage = hammingCode.encode(text)
+        val decodedMessage = hammingCode.decode(encodedMessage)
+        textUnderSticker.visibility = View.GONE
+        text_output.visibility = View.VISIBLE
+        text_output.text = "Закодированное сообщение: $encodedMessage\nДекодированное сообщение: ${decodedMessage.first}"
     }
     private fun animateButtonPress(button: Button) {
         val scaleDown = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0.95f)

@@ -114,6 +114,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/roboto_mono"
             android:text="@string/nav_main"
+            android:textColor="@color/black"
             app:layout_constraintEnd_toEndOf="@+id/nav_item1"
             app:layout_constraintStart_toStartOf="@+id/nav_item1"
             app:layout_constraintTop_toBottomOf="@+id/layout_main_nav" />
@@ -125,6 +126,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/roboto_mono"
             android:text="@string/nav_result"
+            android:textColor="@color/black"
             app:layout_constraintEnd_toEndOf="@+id/nav_item2"
             app:layout_constraintStart_toStartOf="@+id/nav_item2"
             app:layout_constraintTop_toBottomOf="@+id/layout_results_nav" />
@@ -137,6 +139,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/roboto_mono"
             android:text="@string/nav_settings"
+            android:textColor="@color/black"
             app:layout_constraintEnd_toEndOf="@+id/nav_item3"
             app:layout_constraintStart_toStartOf="@+id/nav_item3"
             app:layout_constraintTop_toBottomOf="@+id/layout_settings_nav" />
