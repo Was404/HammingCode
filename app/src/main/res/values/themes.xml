@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Demo" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Demo" parent="Theme.MaterialComponents.DayNight.NoActionBar" >
+        <item name="colorSurface">#F0B7B4</item> <!-- Замените на нужный цвет -->
+        <item name="colorPrimary">#65558E</item>
+        <item name="colorOnPrimary">#FDFDFD</item>
+        <item name="colorSecondary">#625B70</item>
+        <item name="colorOnSecondary">#FDFDFD</item>
+    </style>
 </resources>

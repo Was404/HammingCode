@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="surface">#DDD7E0</color>
     <color name="high_btn">#EAE5EE</color>
+    <color name="colorBackground">#1D192B</color>
 </resources>
