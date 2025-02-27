@@ -1,5 +1,7 @@
 class HammingCode {
-
+/*
+Требует модификации: кодировка вход стрки по ASCII, демонстрация исправления ошибок
+*/
     // Возвращает закодированное сообщение с использованием кода Хэмминга
     fun encode(message: String): String {
         val messageBits = message.map { it.toString().toInt() }
