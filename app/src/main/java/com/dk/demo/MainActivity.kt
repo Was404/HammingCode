@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
         val decodedMessage = hammingCode.decode(encodedMessage)
         textUnderSticker.visibility = View.GONE
         text_output.visibility = View.VISIBLE
-        text_output.text = "Закодированное сообщение: $encodedMessage\nДекодированное сообщение: ${decodedMessage.first}"
+        text_output.text = "Закодированное сообщение: $encodedMessage\nДекодированное сообщение: ${decodedMessage}"
     }
     private fun animateButtonPress(button: Button) {
         val scaleDown = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0.95f)

@@ -1,92 +1,84 @@
 class HammingCode {
 /*
-Требует модификации: кодировка вход стрки по ASCII, демонстрация исправления ошибок
+Требует модификации: демонстрация исправления ошибок
 */
-    // Возвращает закодированное сообщение с использованием кода Хэмминга
+// Кодирование строки в бинарный формат с исправлением ошибок
     fun encode(message: String): String {
-        val messageBits = message.map { it.toString().toInt() }
-        val m = messageBits.size
-        val r = calculateRedundantBits(m)
-        val totalBits = m + r
-        val codeword = IntArray(totalBits)
-
-        var j = 0
-        for (i in 1..totalBits) {
-            if (isPowerOfTwo(i)) {
-                // Устанавливаем контрольные биты на 0
-                codeword[i - 1] = 0
-            } else {
-                codeword[i - 1] = messageBits[j]
-                j++
-            }
-        }
-
-        // Вычисление значений контрольных бит
-        for (i in 1..r) {
-            val parityPosition = (1 shl (i - 1))
-            var parity = 0
-
-            for (j in 1..totalBits) {
-                if (j and parityPosition != 0) {
-                    parity = parity xor codeword[j - 1]
-                }
-            }
-
-            codeword[parityPosition - 1] = parity
-        }
-
-        return codeword.joinToString("")
+        val binaryStr = message.toBinaryString()
+        val paddedStr = addPadding(binaryStr, 4)
+        return paddedStr.chunked(4).joinToString("") { encode4Bit(it) }
     }
 
-    // Декодирует сообщение и исправляет одну ошибку, если она есть
-    fun decode(codeword: String): Pair<String, String> {
-        val bits = codeword.map { it.toString().toInt() }.toIntArray()
-        val totalBits = bits.size
-        val r = calculateRedundantBits(totalBits)  // Исправлено вычисление r
-        var errorPosition = 0
-
-        for (i in 1..r) {
-            val parityPosition = (1 shl (i - 1))
-            var parity = 0
-
-            for (j in 1..totalBits) {
-                if (j and parityPosition != 0) {
-                    parity = parity xor bits[j - 1]
-                }
+    // Декодирование с исправлением одной ошибки в 7-битном блоке
+    fun decode(encodedMessage: String): String {
+        val corrected = encodedMessage.chunked(7).map { correctErrors(it) }.joinToString("")
+        val dataBits = corrected.mapIndexed { index, c ->
+            when ((index % 7)) {
+                2, 4, 5, 6 -> c
+                else -> null
             }
-
-            if (parity != 0) {
-                errorPosition += parityPosition
-                break  // Исправлено: выход из цикла после обнаружения ошибки
-            }
-        }
-
-        if (errorPosition != 0) {
-            println("Ошибка в позиции: $errorPosition")
-            bits[errorPosition - 1] = if (bits[errorPosition - 1] == 0) 1 else 0 // Исправляем ошибку
-            println("Исправленное сообщение: ${bits.joinToString("")}") // Выводим исправленное сообщение
-        } else {
-            println("Ошибок не найдено.")
-        }
-
-        // Извлечение оригинального сообщения
-        val originalMessage = bits.filterIndexed { index, _ -> !isPowerOfTwo(index + 1) }
-            .joinToString("")
-
-        return Pair(originalMessage, bits.joinToString(""))
+        }.filterNotNull().joinToString("")
+        return dataBits.binaryStringToText()
     }
 
-    // Проверяет, является ли число степенью двойки
-    private fun isPowerOfTwo(n: Int): Boolean {
-        return (n and (n - 1)) == 0
+    private fun encode4Bit(bits: String): String {
+        require(bits.length == 4) { "Input must be 4 bits" }
+
+        val d1 = bits[0].digitToInt()
+        val d2 = bits[1].digitToInt()
+        val d3 = bits[2].digitToInt()
+        val d4 = bits[3].digitToInt()
+
+        val r1 = d1 xor d2 xor d4
+        val r2 = d1 xor d3 xor d4
+        val r3 = d2 xor d3 xor d4
+
+        return "$r1$r2$d1$r3$d2$d3$d4"
     }
 
-    // Вычисляет количество контрольных бит для заданного количества бит сообщения
-    private fun calculateRedundantBits(m: Int): Int {
-        var r = 0
-        while (Math.pow(2.0, r.toDouble()).toInt() < m + r + 1) {
-            r++
+    private fun correctErrors(bits: String): String {
+        if (bits.length < 7) return bits
+
+        val p1 = bits[0].digitToInt()
+        val p2 = bits[1].digitToInt()
+        val d1 = bits[2].digitToInt()
+        val p3 = bits[3].digitToInt()
+        val d2 = bits[4].digitToInt()
+        val d3 = bits[5].digitToInt()
+        val d4 = bits[6].digitToInt()
+
+        // Вычисляем синдромы
+        val s1 = p1 xor d1 xor d2 xor d4
+        val s2 = p2 xor d1 xor d3 xor d4
+        val s3 = p3 xor d2 xor d3 xor d4
+
+        val errorPosition = s1 + s2 * 2 + s3 * 4 - 1
+
+        if (errorPosition >= 0) {
+            val corrected = bits.toCharArray()
+            corrected[errorPosition] = if (corrected[errorPosition] == '0') '1' else '0'
+            return String(corrected)
         }
-        return r
+
+        return bits
+    }
+
+    // Вспомогательные функции
+    private fun String.toBinaryString(): String {
+        return this.map { char ->
+            char.code.toString(2).padStart(8, '0')
+        }.joinToString("")
+    }
+
+    private fun addPadding(bits: String, blockSize: Int): String {
+        val padding = (blockSize - (bits.length % blockSize)) % blockSize
+        return bits + "0".repeat(padding)
+    }
+
+    private fun String.binaryStringToText(): String {
+        return this.chunked(8).map { binaryByte ->
+            val byteValue = binaryByte.padEnd(8, '0').take(8).toInt(2)
+            byteValue.toChar()
+        }.joinToString("").trimEnd { it == '\u0000' }
     }
 }
