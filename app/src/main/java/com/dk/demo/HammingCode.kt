@@ -1,8 +1,15 @@
-class HammingCode {
+object HammingCode {
 /*
 Требует модификации: демонстрация исправления ошибок
 */
 // Кодирование строки в бинарный формат с исправлением ошибок
+    data class DecodeResult(
+        val text: String,
+        val errorCount: Int,
+        val totalBlocks: Int, // 1. Добавляем параметр
+        val errorDetails: String
+    )
+
     fun encode(message: String): String {
         val binaryStr = message.toBinaryString()
         val paddedStr = addPadding(binaryStr, 4)
@@ -81,4 +88,55 @@ class HammingCode {
             byteValue.toChar()
         }.joinToString("").trimEnd { it == '\u0000' }
     }
+
+    private fun extractDataBits(encoded: String): String {
+        return encoded.chunked(7).joinToString("") { chunk ->
+            if (chunk.length < 7) "" else "${chunk[2]}${chunk[4]}${chunk[5]}${chunk[6]}"
+        }
+    }
+
+
+    fun decodeWithErrorInfo(encodedMessage: String): DecodeResult {
+        val (corrected, errors) = correctErrorsWithInfo(encodedMessage)
+        val dataBits = extractDataBits(corrected) // 2. Используем функцию извлечения данных
+        val totalBlocks = encodedMessage.chunked(7).size // 3. Считаем блоки
+
+        return DecodeResult(
+            text = dataBits.binaryStringToText(),
+            errorCount = errors,
+            totalBlocks = totalBlocks, // 4. Передаем в результат
+            errorDetails = if (errors > 0) "Найдено и исправлено $errors ошибок"
+            else "Ошибок не обнаружено"
+        )
+    }
+
+    private fun correctErrorsWithInfo(bits: String): Pair<String, Int> {
+        var errorCount = 0
+        val corrected = bits.chunked(7).joinToString("") { chunk ->
+            val (fixedChunk, hasError) = correctChunk(chunk)
+            if (hasError) errorCount++
+            fixedChunk
+        }
+        return Pair(corrected, errorCount)
+    }
+
+    private fun correctChunk(chunk: String): Pair<String, Boolean> {
+        if (chunk.length < 7) return Pair(chunk, false)
+
+        val corrected = correctErrors(chunk)
+        return Pair(corrected, corrected != chunk)
+    }
+
+    fun introduceErrors(encoded: String, errorBlocks: Int = 1): String {
+        val chunks = encoded.chunked(7).toMutableList()
+        repeat(errorBlocks.coerceAtMost(chunks.size)) { index ->
+            val chunk = chunks[index].toCharArray()
+            val errorPos = (0 until 7).random()
+            chunk[errorPos] = if (chunk[errorPos] == '0') '1' else '0'
+            chunks[index] = String(chunk)
+        }
+        return chunks.joinToString("")
+    }
+
+
 }

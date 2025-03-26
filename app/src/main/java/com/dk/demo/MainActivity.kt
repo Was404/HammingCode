@@ -24,6 +24,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var text_output: TextView
     private lateinit var text_welcome: TextView
     private lateinit var textUnderSticker: TextView
+
+    private var lastDecodeResult: HammingCode.DecodeResult? = null // переменная для хранения результатов
+    private lateinit var explanationText: TextView // для имитатора ошибок
+
     private var originalWidth: Int = 0
     private var originalHeight: Int = 0
 
@@ -47,6 +51,8 @@ class MainActivity : ComponentActivity() {
         text_welcome = findViewById(R.id.textWelcome)
         textUnderSticker = findViewById(R.id.textUnderSticker)
 
+        explanationText = findViewById(R.id.explanationText)
+
         val layout_results: LinearLayout = findViewById(R.id.layout_results_nav)
         val layout_settings: LinearLayout = findViewById(R.id.layout_settings_nav)
         val layout_main: LinearLayout = findViewById(R.id.layout_main_nav)
@@ -65,6 +71,7 @@ class MainActivity : ComponentActivity() {
             // showAlertDialogWithInput()
             showAlertDialogWithInput()
         }
+
         // Кнопки навигации
         btn_nav_result.setOnClickListener{
             setActiveLayout(layout_results)
@@ -73,12 +80,30 @@ class MainActivity : ComponentActivity() {
             img_nav_result.setImageResource(R.drawable.ic_bookmark_filled)
             img_nav_main.setImageResource(R.drawable.ic_chat_bubble)
             img_nav_settings.setImageResource(R.drawable.ic_settings)
+            text_welcome.visibility = View.GONE
+            textUnderSticker.visibility = View.GONE
+
+            lastDecodeResult?.let { result ->
+                explanationText.text = """
+                    Результаты проверки:
+                    Всего блоков: ${result.totalBlocks}
+                    Блоков с ошибками: ${result.errorCount}
+                    ${result.errorDetails}
+                """.trimIndent()
+            } ?: run {
+                explanationText.text = "Нет данных для проверки ошибок"
+            }
+
+            explanationText.visibility = View.VISIBLE
+            text_output.visibility = View.GONE
         }
+
         btn_nav_main.setOnClickListener{
             setActiveLayout(layout_main)
             collapsebackgroundPink()
             text_welcome.visibility = View.VISIBLE
             textUnderSticker.visibility = View.VISIBLE
+            explanationText.visibility = View.GONE
             img_nav_main.setImageResource(R.drawable.ic_chat_bubble)
             img_nav_result.setImageResource(R.drawable.ic_results)
             img_nav_settings.setImageResource(R.drawable.ic_settings)
@@ -89,6 +114,7 @@ class MainActivity : ComponentActivity() {
             img_nav_settings.setImageResource(R.drawable.ic_settings_filled)
             img_nav_result.setImageResource(R.drawable.ic_results)
             img_nav_main.setImageResource(R.drawable.ic_chat_bubble)
+            explanationText.visibility = View.GONE
         }
 
     }
@@ -136,16 +162,25 @@ class MainActivity : ComponentActivity() {
             .show()
     }
 
+
     private fun handleInputText(text: String) {
-        // Здесь происходит обработка введенного текста
-        // Например, можно вывести его в TextView
-        val hammingCode = HammingCode()
-        val encodedMessage = hammingCode.encode(text)
-        val decodedMessage = hammingCode.decode(encodedMessage)
+        // Кодируем сообщение
+        val encodedMessage = HammingCode.encode(text)
+        val encoded = HammingCode.encode(text)
+        val corrupted = HammingCode.introduceErrors(encoded) // Добавляем ошибки
+        val decodeResult = HammingCode.decodeWithErrorInfo(corrupted) // Декодируем с проверкой ошибок
+
+        // Сохраняем результат
+        lastDecodeResult = decodeResult
+
+        // Обновляем UI
         textUnderSticker.visibility = View.GONE
         text_output.visibility = View.VISIBLE
-        text_output.text = "Закодированное сообщение: $encodedMessage\nДекодированное сообщение: ${decodedMessage}"
+        text_output.text = """Закодировано: $encodedMessage  
+            Декодировано: ${decodeResult.text} 
+            Статус ошибок: ${decodeResult.errorDetails}""".trimIndent()
     }
+
     private fun animateButtonPress(button: Button) {
         val scaleDown = ObjectAnimator.ofFloat(button, "scaleX", 1f, 0.95f)
         val scaleUp = ObjectAnimator.ofFloat(button, "scaleX", 0.95f, 1f)
@@ -158,6 +193,7 @@ class MainActivity : ComponentActivity() {
         animatorSet.playSequentially(scaleDown, scaleUp)
         animatorSet.start()
     }
+
 
 }
 
